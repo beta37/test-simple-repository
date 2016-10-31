@@ -1,0 +1,49 @@
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ 'bills'|_ }}</h3>
+    </div>
+    <div class="box-body table-responsive no-padding">
+        <table class="table table-hover sortable">
+            <thead>
+            <tr>
+                <th>{{ trans('form.name') }}</th>
+                <th>{{ trans('form.amount_min') }}</th>
+                <th>{{ trans('form.amount_max') }}</th>
+                <th>{{ trans('form.amount') }}</th>
+                <th>{{ trans('form.under') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for line in bills.getBills %}
+                <tr>
+                    <td data-value="{{ line.getBill.name }}">
+                        <a href="{{ route('bills.show',line.getBill.id) }}">{{ line.getBill.name }}</a>
+                    </td>
+                    <td data-value="{{ line.getMin }}">{{ line.getMin|formatAmount }}</td>
+                    <td data-value="{{ line.getMax }}">{{ line.getMax|formatAmount }}</td>
+                    {% if line.isHit %}
+                        <td data-value="{{ line.getAmount }}">
+                            <a href="{{ route('transactions.show', line.getTransactionJournalId) }}">
+                                {{ line.getAmount|formatAmount }}
+                            </a>
+                        </td>
+                    {% endif %}
+                    {% if not line.isHit and line.isActive %}
+                        <td data-value="0" class="bg-success">{{ 'notCharged'|_ }}</td>
+                    {% endif %}
+                    {% if not line.isActive %}
+                        <td data-value="-1">&nbsp;</td>
+                    {% endif %}
+                    <td data-value="{{ (line.getMax - line.getAmount) }}">
+                        {% if line.isActive %}
+                            {{ (line.getMax + line.getAmount)|formatAmount }}
+                        {% endif %}
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

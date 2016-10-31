@@ -1,0 +1,70 @@
+{% extends "./layout/default.twig" %}
+
+{% block breadcrumbs %}
+    {{ Breadcrumbs.renderIfExists }}
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'import'|_ }}</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h4>
+                                {{ 'import_data_full'|_ }}
+                            </h4>
+                            <p>
+                                {{ 'import_intro_what_it_does'|_ }}
+                            </p>
+                            <h4>
+                                {{ 'import_intro_import_conf_title'|_ }}
+                            </h4>
+                            <p>
+                                {{ 'import_intro_import_conf_text'|_ }}
+                            </p>
+                            <h4>
+                                {{ 'import_intro_beta_warning'|_ }}
+                            </h4>
+
+                            <p class="text-danger">
+                                &nbsp;{{ 'import_intro_beta'|_ }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <form method="POST" action="{{ route('import.upload') }}" accept-charset="UTF-8" class="form-horizontal" id="update"
+                              enctype="multipart/form-data">
+
+                            <input name="_token" type="hidden" value="{{ csrf_token() }}">
+
+                            <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                                {{ ExpandedForm.file('import_file', {helpText: 'import_file_help'|_}) }}
+                                {{ ExpandedForm.file('configuration_file', {helpText: 'configuration_file_help'|_|raw}) }}
+
+                                {{ ExpandedForm.select('import_file_type', importFileTypes, defaultImportType, {'helpText' : 'import_file_type_help'|_}) }}
+
+                                <div class="form-group" id="import_file_holder">
+                                    <label for="ffInput_submit" class="col-sm-4 control-label">&nbsp;</label>
+
+                                    <div class="col-sm-8">
+                                        <button type="submit" class="btn pull-right btn-success">
+                                            {{ ('import_start')|_ }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block styles %}
+{% endblock %}

@@ -1,0 +1,378 @@
+<?php
+/**
+ * VerifyDatabase.php
+ * Copyright (C) 2016 thegrumpydictator@gmail.com
+ *
+ * This software may be modified and distributed under the terms of the
+ * Creative Commons Attribution-ShareAlike 4.0 International License.
+ *
+ * See the LICENSE file for details.
+ */
+
+declare(strict_types = 1);
+
+namespace FireflyIII\Console\Commands;
+
+use Crypt;
+use FireflyIII\Models\Account;
+use FireflyIII\Models\AccountType;
+use FireflyIII\Models\Budget;
+use FireflyIII\Models\Category;
+use FireflyIII\Models\Tag;
+use FireflyIII\Models\Transaction;
+use FireflyIII\Models\TransactionJournal;
+use FireflyIII\Models\TransactionType;
+use FireflyIII\Repositories\User\UserRepositoryInterface;
+use FireflyIII\User;
+use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
+use stdClass;
+
+/**
+ * Class VerifyDatabase
+ *
+ * @package FireflyIII\Console\Commands
+ */
+class VerifyDatabase extends Command
+{
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Will verify your database.';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'firefly:verify';
+
+    /**
+     * Create a new command instance.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        // accounts with no transactions.
+        $this->reportAccounts();
+        // budgets with no limits
+        $this->reportBudgetLimits();
+        // budgets with no transactions
+        $this->reportBudgets();
+        // categories with no transactions
+        $this->reportCategories();
+        // tags with no transactions
+        $this->reportTags();
+        // sum of transactions is not zero.
+        $this->reportSum();
+        //  any deleted transaction journals that have transactions that are NOT deleted:
+        $this->reportJournals();
+        // deleted transactions that are connected to a not deleted journal.
+        $this->reportTransactions();
+        // deleted accounts that still have not deleted transactions or journals attached to them.
+        $this->reportDeletedAccounts();
+
+        // report on journals with no transactions at all.
+        $this->reportNoTransactions();
+
+        // transfers with budgets.
+        $this->reportTransfersBudgets();
+
+        // report on journals with the wrong types of accounts.
+        $this->reportIncorrectJournals();
+    }
+
+    /**
+     * Reports on accounts with no transactions.
+     */
+    private function reportAccounts()
+    {
+        $set = Account
+            ::leftJoin('transactions', 'transactions.account_id', '=', 'accounts.id')
+            ->leftJoin('users', 'accounts.user_id', '=', 'users.id')
+            ->groupBy(['accounts.id', 'accounts.encrypted', 'accounts.name', 'accounts.user_id', 'users.email'])
+            ->whereNull('transactions.account_id')
+            ->get(
+                ['accounts.id', 'accounts.encrypted', 'accounts.name', 'accounts.user_id', 'users.email']
+            );
+
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $name = $entry->name;
+            $line = 'User #%d (%s) has account #%d ("%s") which has no transactions.';
+            $line = sprintf($line, $entry->user_id, $entry->email, $entry->id, $name);
+            $this->line($line);
+        }
+    }
+
+    /**
+     * Reports on budgets with no budget limits (which makes them pointless).
+     */
+    private function reportBudgetLimits()
+    {
+        $set = Budget
+            ::leftJoin('budget_limits', 'budget_limits.budget_id', '=', 'budgets.id')
+            ->leftJoin('users', 'budgets.user_id', '=', 'users.id')
+            ->groupBy(['budgets.id', 'budgets.name', 'budgets.user_id', 'users.email'])
+            ->whereNull('budget_limits.id')
+            ->get(['budgets.id', 'budgets.name', 'budgets.user_id', 'users.email']);
+
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $line = 'Notice: User #' . $entry->user_id . ' (' . $entry->email . ') has budget #' . $entry->id . ' ("' . Crypt::decrypt($entry->name)
+                    . '") which has no budget limits.';
+            $this->line($line);
+        }
+    }
+
+    /**
+     * Reports on budgets without any transactions.
+     */
+    private function reportBudgets()
+    {
+        $set = Budget
+            ::leftJoin('budget_transaction_journal', 'budgets.id', '=', 'budget_transaction_journal.budget_id')
+            ->leftJoin('users', 'budgets.user_id', '=', 'users.id')
+            ->distinct()
+            ->whereNull('budget_transaction_journal.budget_id')
+            ->whereNull('budgets.deleted_at')
+            ->get(['budgets.id', 'budgets.name', 'budgets.user_id', 'users.email']);
+
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $line = 'Notice: User #' . $entry->user_id . ' (' . $entry->email . ') has budget #' . $entry->id . ' ("' . Crypt::decrypt($entry->name)
+                    . '") which has no transactions.';
+            $this->line($line);
+        }
+    }
+
+    /**
+     * Reports on categories without any transactions.
+     */
+    private function reportCategories()
+    {
+        $set = Category
+            ::leftJoin('category_transaction_journal', 'categories.id', '=', 'category_transaction_journal.category_id')
+            ->leftJoin('users', 'categories.user_id', '=', 'users.id')
+            ->distinct()
+            ->whereNull('category_transaction_journal.category_id')
+            ->whereNull('categories.deleted_at')
+            ->get(['categories.id', 'categories.name', 'categories.user_id', 'users.email']);
+
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $line = 'Notice: User #' . $entry->user_id . ' (' . $entry->email . ') has category #' . $entry->id . ' ("' . Crypt::decrypt($entry->name)
+                    . '") which has no transactions.';
+            $this->line($line);
+        }
+    }
+
+    /**
+     * Reports on deleted accounts that still have not deleted transactions or journals attached to them.
+     */
+    private function reportDeletedAccounts()
+    {
+        $set = Account
+            ::leftJoin('transactions', 'transactions.account_id', '=', 'accounts.id')
+            ->leftJoin('transaction_journals', 'transaction_journals.id', '=', 'transactions.transaction_journal_id')
+            ->whereNotNull('accounts.deleted_at')
+            ->whereNotNull('transactions.id')
+            ->where(
+                function (Builder $q) {
+                    $q->whereNull('transactions.deleted_at');
+                    $q->orWhereNull('transaction_journals.deleted_at');
+                }
+            )
+            ->get(
+                ['accounts.id as account_id', 'accounts.deleted_at as account_deleted_at', 'transactions.id as transaction_id',
+                 'transactions.deleted_at as transaction_deleted_at', 'transaction_journals.id as journal_id',
+                 'transaction_journals.deleted_at as journal_deleted_at']
+            );
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $date = is_null($entry->transaction_deleted_at) ? $entry->journal_deleted_at : $entry->transaction_deleted_at;
+            $this->error(
+                'Error: Account #' . $entry->account_id . ' should have been deleted, but has not.' .
+                ' Find it in the table called "accounts" and change the "deleted_at" field to: "' . $date . '"'
+            );
+        }
+    }
+
+    private function reportIncorrectJournals()
+    {
+        $configuration = [
+            // a withdrawal can not have revenue account:
+            TransactionType::WITHDRAWAL => [AccountType::REVENUE],
+
+            // deposit cannot have an expense account:
+            TransactionType::DEPOSIT    => [AccountType::EXPENSE],
+
+            // transfer cannot have either:
+            TransactionType::TRANSFER   => [AccountType::EXPENSE, AccountType::REVENUE],
+        ];
+        foreach ($configuration as $transactionType => $accountTypes) {
+            $set = TransactionJournal
+                ::leftJoin('transaction_types', 'transaction_types.id', '=', 'transaction_journals.transaction_type_id')
+                ->leftJoin('transactions', 'transactions.transaction_journal_id', '=', 'transaction_journals.id')
+                ->leftJoin('accounts', 'accounts.id', '=', 'transactions.account_id')
+                ->leftJoin('account_types', 'account_types.id', 'accounts.account_type_id')
+                ->leftJoin('users', 'users.id', '=', 'transaction_journals.user_id')
+                ->where('transaction_types.type', $transactionType)
+                ->whereIn('account_types.type', $accountTypes)
+                ->whereNull('transaction_journals.deleted_at')
+                ->get(['transaction_journals.id', 'transaction_journals.user_id', 'users.email', 'account_types.type as a_type', 'transaction_types.type']);
+            foreach ($set as $entry) {
+                $this->error(
+                    sprintf(
+                        'Transaction journal #%d (user #%d, %s) is of type "%s" but ' .
+                        'is linked to a "%s". The transaction journal should be recreated.',
+                        $entry->id,
+                        $entry->user_id,
+                        $entry->email,
+                        $entry->type,
+                        $entry->a_type
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * Any deleted transaction journals that have transactions that are NOT deleted:
+     */
+    private function reportJournals()
+    {
+        $set = TransactionJournal
+            ::leftJoin('transactions', 'transactions.transaction_journal_id', '=', 'transaction_journals.id')
+            ->whereNotNull('transaction_journals.deleted_at')// USE THIS
+            ->whereNull('transactions.deleted_at')
+            ->whereNotNull('transactions.id')
+            ->get(
+                [
+                    'transaction_journals.id as journal_id',
+                    'transaction_journals.description',
+                    'transaction_journals.deleted_at as journal_deleted',
+                    'transactions.id as transaction_id',
+                    'transactions.deleted_at as transaction_deleted_at']
+            );
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $this->error(
+                'Error: Transaction #' . $entry->transaction_id . ' should have been deleted, but has not.' .
+                ' Find it in the table called "transactions" and change the "deleted_at" field to: "' . $entry->journal_deleted . '"'
+            );
+        }
+    }
+
+    /**
+     *
+     */
+    private function reportNoTransactions()
+    {
+        $set = TransactionJournal
+            ::leftJoin('transactions', 'transactions.transaction_journal_id', '=', 'transaction_journals.id')
+            ->groupBy('transaction_journals.id')
+            ->whereNull('transactions.transaction_journal_id')
+            ->get(['transaction_journals.id']);
+
+        foreach ($set as $entry) {
+            $this->error(
+                'Error: Journal #' . $entry->id . ' has zero transactions. Open table "transaction_journals" and delete the entry with id #' . $entry->id
+            );
+        }
+
+    }
+
+    /**
+     * Reports for each user when the sum of their transactions is not zero.
+     */
+    private function reportSum()
+    {
+        /** @var UserRepositoryInterface $userRepository */
+        $userRepository = app(UserRepositoryInterface::class);
+
+        /** @var User $user */
+        foreach ($userRepository->all() as $user) {
+            $sum = strval($user->transactions()->sum('amount'));
+            if (bccomp($sum, '0') !== 0) {
+                $this->error('Error: Transactions for user #' . $user->id . ' (' . $user->email . ') are off by ' . $sum . '!');
+            }
+        }
+    }
+
+    /**
+     * Reports on tags without any transactions.
+     */
+    private function reportTags()
+    {
+        $set = Tag
+            ::leftJoin('tag_transaction_journal', 'tags.id', '=', 'tag_transaction_journal.tag_id')
+            ->leftJoin('users', 'tags.user_id', '=', 'users.id')
+            ->distinct()
+            ->whereNull('tag_transaction_journal.tag_id')
+            ->whereNull('tags.deleted_at')
+            ->get(['tags.id', 'tags.tag', 'tags.user_id', 'users.email']);
+
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $line = 'Notice: User #' . $entry->user_id . ' (' . $entry->email . ') has tag #' . $entry->id . ' ("' . $entry->tag
+                    . '") which has no transactions.';
+            $this->line($line);
+        }
+    }
+
+    /**
+     * Reports on deleted transactions that are connected to a not deleted journal.
+     */
+    private function reportTransactions()
+    {
+        $set = Transaction
+            ::leftJoin('transaction_journals', 'transactions.transaction_journal_id', '=', 'transaction_journals.id')
+            ->whereNotNull('transactions.deleted_at')
+            ->whereNull('transaction_journals.deleted_at')
+            ->get(
+                ['transactions.id as transaction_id', 'transactions.deleted_at as transaction_deleted', 'transaction_journals.id as journal_id',
+                 'transaction_journals.deleted_at']
+            );
+        /** @var stdClass $entry */
+        foreach ($set as $entry) {
+            $this->error(
+                'Error: Transaction journal #' . $entry->journal_id . ' should have been deleted, but has not.' .
+                ' Find it in the table called "transaction_journals" and change the "deleted_at" field to: "' . $entry->transaction_deleted . '"'
+            );
+        }
+    }
+
+    /**
+     *
+     */
+    private function reportTransfersBudgets()
+    {
+        $set = TransactionJournal
+            ::distinct()
+            ->leftJoin('transaction_types', 'transaction_types.id', '=', 'transaction_journals.transaction_type_id')
+            ->leftJoin('budget_transaction_journal', 'transaction_journals.id', '=', 'budget_transaction_journal.transaction_journal_id')
+            ->where('transaction_types.type', TransactionType::TRANSFER)
+            ->whereNotNull('budget_transaction_journal.budget_id')->get(['transaction_journals.id']);
+
+        /** @var TransactionJournal $entry */
+        foreach ($set as $entry) {
+            $this->error(
+                sprintf(
+                    'Error: Transaction journal #%d is a transfer, but has a budget. Edit it without changing anything, so the budget will be removed.',
+                    $entry->id
+                )
+            );
+        }
+
+
+    }
+}

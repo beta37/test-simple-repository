@@ -1,0 +1,109 @@
+{% extends "./layout/default.twig" %}
+
+{% block breadcrumbs %}
+    {{ Breadcrumbs.renderIfExists(Route.getCurrentRoute.getName, tag) }}
+{% endblock %}
+
+{% block content %}
+    <!-- show this block only when the tag has some meta-data -->
+
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'meta_data'|_ }}</h3>
+
+                    <!-- ACTIONS MENU -->
+                    <div class="box-tools pull-right">
+                        <div class="btn-group">
+                            <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="{{ route('tags.edit',tag.id) }}"><i class="fa fa-pencil fa-fw"></i> {{ trans('firefly.edit_tag',{tag: tag.tag}) }}
+                                    </a></li>
+                                <li><a href="{{ route('tags.delete',tag.id) }}"><i
+                                                class="fa fa-trash fa-fw"></i> {{ trans('firefly.delete_tag',{tag: tag.tag}) }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    {% if tag.description %}
+                        <p class="text-info">
+                            {{ tag.description }}
+                        </p>
+                    {% endif %}
+
+                    {% if tag.date %}
+                        <p>{{ 'date'|_ }}: {{ tag.date.formatLocalized(monthAndDayFormat) }}</p>
+                    {% endif %}
+
+                    <p>
+                        {{ 'sum'|_ }}: {{ sum|formatAmount }}<br/>
+                    </p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'location'|_ }}</h3>
+
+                    <!-- ACTIONS MENU -->
+                    <div class="box-tools pull-right">
+                        <div class="btn-group">
+                            <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="{{ route('tags.edit',tag.id) }}"><i class="fa fa-pencil fa-fw"></i> {{ trans('firefly.edit_tag',{tag: tag.tag}) }}
+                                    </a></li>
+                                <li><a href="{{ route('tags.delete',tag.id) }}"><i
+                                                class="fa fa-trash fa-fw"></i> {{ trans('firefly.delete_tag',{tag: tag.tag}) }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-body">
+                    {% if tag.latitude and tag.longitude and tag.zoomLevel %}
+                        <p>
+                            <img src="https://maps.googleapis.com/maps/api/staticmap?center={{ tag.latitude }},{{ tag.longitude }}&zoom={{ tag.zoomLevel }}&size=600x300">
+                        </p>
+                    {% else %}
+                        <p>{{ 'no_location_set'|_ }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-612 col-md-12 col-sm-12 col-xs-12">
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'transactions'|_ }}</h3>
+
+                    <!-- ACTIONS MENU -->
+                    <div class="box-tools pull-right">
+                        <div class="btn-group">
+                            <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="{{ route('tags.edit',tag.id) }}"><i class="fa fa-pencil fa-fw"></i> {{ trans('firefly.edit_tag',{tag: tag.tag}) }}
+                                    </a></li>
+                                <li><a href="{{ route('tags.delete',tag.id) }}"><i
+                                                class="fa fa-trash fa-fw"></i> {{ trans('firefly.delete_tag',{tag: tag.tag}) }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-body">
+                    {% include 'list/journals.twig' %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        var tagID = {{ tag.id }};
+    </script>
+{% endblock %}

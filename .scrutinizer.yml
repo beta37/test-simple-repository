@@ -1,0 +1,8 @@
+# .scrutinizer.yml
+tools:
+  external_code_coverage: false
+filter:
+    excluded_paths:
+        - app/Support/Migration/*
+        - app/database/migrations/*
+        - database/migrations/*
