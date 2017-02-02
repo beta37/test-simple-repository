@@ -10,14 +10,14 @@
  */
 
 return [
-    'locale'          => 'fr, French, fr_FR, fr_FR.utf8',
-    'month'           => '%B %Y',
-    'month_and_day'   => '%e %B %Y',
-    'date_time'       => '%B %e %Y @ %T',
-    'specific_day'    => '%e %B %Y',
-    'week_in_year'    => '%W %Y',
-    'quarter_of_year' => '%B %Y',
-    'year'            => '%Y',
-    'half_year'       => '%B %Y',
+    'locale'          => '',
+    'month'           => '',
+    'month_and_day'   => '',
+    'date_time'       => '',
+    'specific_day'    => '',
+    'week_in_year'    => '',
+    'quarter_of_year' => '',
+    'year'            => '',
+    'half_year'       => '',
 
 ];
