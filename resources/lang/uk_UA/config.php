@@ -10,14 +10,14 @@
  */
 
 return [
-    'locale'          => 'англійська, англійська мова, мова.в UTF8',
-    'month'           => '%B %г',
-    'month_and_day'   => '%B %e, %г',
-    'date_time'       => '%B %e, %Г, @ %Т',
-    'specific_day'    => '%e %B %г',
-    'week_in_year'    => 'Тиждень, %Ж, %Г',
-    'quarter_of_year' => '%B %г',
-    'year'            => '%Г',
-    'half_year'       => '%B %г',
+    'locale'          => '',
+    'month'           => '',
+    'month_and_day'   => '',
+    'date_time'       => '',
+    'specific_day'    => '',
+    'week_in_year'    => '',
+    'quarter_of_year' => '',
+    'year'            => '',
+    'half_year'       => '',
 
 ];
