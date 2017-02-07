@@ -27,7 +27,7 @@ return [
     'column_roles_text'      => '<p>Firefly III non può indovinare che cosa i dati di ogni colonna contiene. Si deve dire Firefly quali tipi di dati si aspettano. I dati di esempio in grado di guidarvi nella raccolta il tipo corretto dal menu a discesa. Se una colonna non può essere abbinata ad un utile tipo di dati, per favore fatemelo sapere <a href="https://github.com/JC5/firefly-iii/issues/new">by la creazione di un issue</a>.</p><p>Some valori nel file CSV, ad esempio nomi di account o categorie, possono già essere presenti nel Firefly III database. Se si seleziona "mappa questi valori" Firefly non tenterà di ricerca per la corrispondenza di valori in sé, ma consente l\'allineamento dei valori CSV contro i valori nel database. Questo permette di ottimizzare l\'importazione.</p>',
     'column_roles_table'     => 'Tabella',
     'column_name'            => 'Nome di colonna',
-    'column_example'         => 'Colonna si dati di esempio',
+    'column_example'         => 'Colonna di dati di esempio',
     'column_role'            => 'Dati della colonna significato',
     'do_map_value'           => 'Una mappa di questi valori',
     'column'                 => 'Colonna',
