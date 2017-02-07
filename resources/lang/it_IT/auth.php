@@ -22,8 +22,8 @@ return [
     |
     */
 
-    'failed'   => '',
-    'throttle' => '',
-    'testing field' => ''.
+    'failed'   => 'Queste credenziali non corrispondono alle nostre record.',
+    'throttle' => 'Troppi tentativi di accesso. Si prega di riprovare in :secondi secondi.',
+    'testing field' => 'test di campo'.
 
 ];
