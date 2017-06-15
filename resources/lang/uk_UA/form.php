@@ -18,7 +18,7 @@ return [
     'credit_card_limit'              => 'Ліміт кредитної карти',
     'automatch'                      => 'Автоматично матч',
     'skip'                           => 'Пропустити',
-    'name'                           => 'Name',
+    'name'                           => 'Назва',
     'active'                         => 'Активний',
     'amount_min'                     => 'Мінімальна сума',
     'amount_max'                     => 'Максимальна сума',
@@ -36,7 +36,7 @@ return [
     'journal_destination_account_id' => 'Рахунки активів (пункт призначення)',
     'asset_destination_account'      => 'Рахунки активів (пункт призначення)',
     'asset_source_account'           => 'Рахунки активів (джерело)',
-    'journal_description'            => 'Description',
+    'journal_description'            => 'Опис',
     'note'                           => 'Примітки',
     'split_journal'                  => 'Спліт ця угода',
     'split_journal_explanation'      => 'Розділити цю угоду на кілька частин',
@@ -57,7 +57,7 @@ return [
     'returnHere'                     => 'Повернутися',
     'returnHereExplanation'          => 'Після збереження, повернутися сюди, щоб створити ще один.',
     'returnHereUpdateExplanation'    => 'Після оновлення, повернутися сюди.',
-    'description'                    => 'Description',
+    'description'                    => 'Опис',
     'expense_account'                => 'Рахунок',
     'revenue_account'                => 'Дохід за рахунком',
 
@@ -78,11 +78,11 @@ return [
     'book_date'                  => 'Щоденник',
     'process_date'               => 'Дата обробки',
     'category'                   => 'Категорія',
-    'tags'                       => 'Tags',
+    'tags'                       => 'Теги',
     'deletePermanently'          => 'Видалити назавжди',
     'cancel'                     => 'Скасувати',
     'targetdate'                 => 'Термін',
-    'tag'                        => 'Tag',
+    'tag'                        => 'Тег',
     'under'                      => 'Під',
     'symbol'                     => 'Символ',
     'code'                       => 'Код',
@@ -148,7 +148,7 @@ return [
     'tag_keep_transactions'      => 'Єдиною операції, пов\'язаної з цим тегом не будуть видалені.|Всі :операцій підрахунку, підключених до цим тегом будуть позбавлені видалення.',
 
     // admin
-    'domain'                     => 'Domain',
+    'domain'                     => 'Домен',
     'single_user_mode'           => 'Однокористувацький режим',
 
     // import
