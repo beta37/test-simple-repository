@@ -64,7 +64,7 @@ return [
     'column_date-book'              => 'Дата проведення операції',
     'column_date-process'           => 'Дата обробки транзакції',
     'column_date-transaction'       => 'Дата',
-    'column_description'            => 'Description',
+    'column_description'            => 'Опис',
     'column_opposing-iban'          => 'Протилежні рахунку (iban)',
     'column_opposing-id'            => 'Протилежні ідентифікатор облікового запису (відповідні Світлячок)',
     'column_external-id'            => 'Зовнішній ідентифікатор',
