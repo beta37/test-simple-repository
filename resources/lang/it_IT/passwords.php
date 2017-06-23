@@ -10,10 +10,10 @@
  */
 
 return [
-    'password' => '',
-    'user'     => '',
-    'token'    => '',
-    'sent'     => '',
-    'reset'    => '',
-    'blocked'  => '',
+    'password' => 'Le password devono essere di almeno sei caratteri e soddisfare la conferma.',
+    'user'     => 'Non siamo in grado di trovare un utente con l\'indirizzo di posta elettronica.',
+    'token'    => 'Questa password reset token non valido.',
+    'sent'     => 'Abbiamo inviato e-mail il link di reimpostazione password!',
+    'reset'    => 'La tua password è stata reimpostata!',
+    'blocked'  => 'Bella prova anche se.',
 ];
